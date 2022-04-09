@@ -31,13 +31,9 @@ crop_raster_to_africa <- function(raster_folder = "//esapov/esapov/ALL/Energy",
 
   foreach(i = 1:length(raster_list)) %dopar% {
 
-    print(paste0("Reading in batch ", i, " of ", round(length(raster_list) %/% numCores), "clusters"))
-
     raster_tif <- raster::raster(paste(raster_folder, raster_list[i], sep = "/"))
 
     raster::crop(raster_tif, africa_shp, filename = paste0(raster_folder, "/NTL/", raster_list[i]))
-
-    print("Batch ", i, " cropping and filesave complete. Please check ", paste0(raster_folder, "/NTL"))
 
   }
 
