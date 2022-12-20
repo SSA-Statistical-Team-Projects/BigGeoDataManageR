@@ -1,0 +1,10 @@
+#### ------ TO DO LIST
+
+Generating a system for pulling rainfall data
+
+What do we want the user to do?
+
+- The user will specify the area they want rainfall data for, the time period of interest and the intervals of data collection (i.e. daily, monthly, 2 monthly, 3 monthly or annual)
+
+Levels of data to pull
+- Daily, 2 monthly, 3 monthly, annual
