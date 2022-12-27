@@ -53,6 +53,21 @@ return(dt)
 
 }
 
+
+chirpname_daily <- function(start_date,
+                            end_date,
+                            repo_interval = "daily",
+                            filename_tag = "rfe_gdas.bin.",
+                            file_ext = ".gz"){
+
+
+
+
+}
+
+
+
+
 check_valid_sixhr <- function(start_date,
                               end_date,
                               start_hr,
@@ -105,3 +120,76 @@ check_valid_sixhr <- function(start_date,
               end_time = end_time))
 
 }
+
+### download function for getting the actual files
+download_worker <- function(dsn,
+                            url){
+
+  download.file(url = url,
+                destfile = paste(dsn, basename(url), sep = "/"),
+                mode = "wb")
+
+  R.utils::gunzip(paste(dsn, basename(url), sep = "/"),
+                  remove = TRUE,
+                  overwrite = TRUE)
+
+}
+
+## check that the url actually exists
+checkurl_exist <- function(url){
+
+  HTTP_STATUS_OK <- 200
+
+  hd <- httr::HEAD(url)
+
+  status <- hd$all_headers[[1]]$status
+
+  test_result <- list(exists = status == HTTP_STATUS_OK,
+                      status = status)
+
+  if (test_result$exists == FALSE) {
+    message("WARNING: ", basename(url), " is not on the CHIRPS database")
+  }
+
+  return(test_result$exists)
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

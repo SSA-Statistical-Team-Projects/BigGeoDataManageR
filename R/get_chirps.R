@@ -5,14 +5,17 @@
 #' @param start_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
 #' @param end_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
 #' @param link_base the link to the daily chirps data (no need to change this)
-#' @param dir_name subfolder within `link_base` of interest
+#'
+#' @importFrom parallel stopCluster makePSOCKcluster parLapply
 #'
 
 get_sixhr_chirps <- function(start_date,
-                             start_end,
+                             end_date,
                              start_hr,
                              end_hr,
-                             link_base = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/"){
+                             link_base = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/",
+                             dsn = getwd(),
+                             cores = 1L){
 
   ## construct link to the file locations
   dt <- chirpname_sixhr(start_date = start_date,
@@ -21,11 +24,27 @@ get_sixhr_chirps <- function(start_date,
                         end_hr = end_hr)
 
 
-  dt[, dir_name := "africa_6-hourly/p1_bin"]
+  dt[pull_date <= as.Date("2015-09-30"), sub_dir := paste0("africa_6-hourly/p1_bin/", year, month)]
+  dt[pull_date > as.Date("2015-09-30"), sub_dir := paste0("africa_6-hourly/p1_bin/extra_step/", year, month)]
 
   dt[, full_link := paste0(link_base,
-                           dir_name,
-                           paste0(year, month))]
+                           sub_dir,
+                           "/",
+                           filename)]
 
+  cl <- makePSOCKcluster(cores)
+  on.exit(stopCluster(cl))
+
+
+  ## check that the link exists
+  dt$exist_status <- unlist(parLapply(cl = cl,
+                                      X = dt$full_link,
+                                      fun = checkurl_exist))
+
+  ## download the chirps
+  parallel::parLapply(cl = cl,
+                      X = dt[exist_status == TRUE, full_link],
+                      fun = download_worker,
+                      dsn = dsn)
 
 }
