@@ -5,7 +5,7 @@
 #' @param start_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
 #' @param end_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
 #'
-#' @importFrom lubridate is.Date ymd_hms ceiling_date floor_date day hour year month
+#' @importFrom lubridate is.Date ymd_hms ceiling_date floor_date day hour year month format_ISO8601
 #' @importFrom data.table data.table
 
 
@@ -60,7 +60,29 @@ chirpname_daily <- function(start_date,
                             filename_tag = "rfe_gdas.bin.",
                             file_ext = ".gz"){
 
+  time_list <- check_valid_daily(start_date = start_date,
+                                 end_date = end_date)
 
+  #### create list of query times from start time to end time
+  dt <- data.table(pull_date = seq(start_date,
+                                   end_date,
+                                   by = repo_interval))
+
+  date_list <- seq(as.Date(time_list$start_date),
+                   as.Date(time_list$end_date),
+                   "days")
+
+  construct_chirpname <- function(X){
+
+    X <- gsub("-", ".", X)
+
+    y <- paste("chirps-v2.0", X, "tif.gz", sep = ".")
+
+  }
+
+  dld_filelist <- lapply(date_list, construct_chirpname)
+
+  return(dld_filelist)
 
 
 }
@@ -121,6 +143,37 @@ check_valid_sixhr <- function(start_date,
 
 }
 
+
+check_valid_daily <- function(start_date,
+                              end_date) {
+
+  ### first make sure start_date and end_date are dates
+  if (is.Date(start_date) == FALSE){
+    stop("start_date argument is not a Date, did you specify it in the form as.Date('yyyy-mm-dd')")
+  }
+
+  if (is.Date(end_date) == FALSE){
+    stop("end_date argument is not a Date, did you specify it in the form as.Date('yyyy-mm-dd')")
+  }
+
+  if (end_date < start_date){
+    stop("End Date should be after the start date")
+  }
+
+
+  ### creates the date-times
+  return(list(start_time = start_time,
+              end_time = end_time))
+
+}
+
+
+
+
+
+
+
+
 ### download function for getting the actual files
 download_worker <- function(dsn,
                             url){
@@ -156,10 +209,67 @@ checkurl_exist <- function(url){
 }
 
 
+################################################################################
+#### functions for the monthly chirps pulls
+chirpname_monthly <- function(start_date,
+                              end_date,
+                              repo_interval = "month",
+                              filename_tag = "chirps-v2.0.",
+                              file_ext = ".tif.gz"){
+
+  time_list <- check_valid_month(start_date = start_date,
+                                 end_date = end_date)
+
+  #### create list of query times from start time to end time
+  dt <- data.table(pull_date = seq(start_date,
+                                   end_date,
+                                   by = repo_interval))
+
+  parse_list <- c("filename_tag", "year", "month")
+
+  dt[, (parse_list) := list(filename_tag,
+                            year(pull_date),
+                            sprintf("%02d", month(pull_date)))]
+
+  dt[,year_month := paste(year, month, sep = ".")]
+
+  dt[, filename := paste0(filename_tag,
+                          year_month,
+                          file_ext)]
+
+  return(dt)
 
 
 
+}
 
+
+check_valid_month <- function(start_date,
+                              end_date) {
+
+  ### first make sure start_date and end_date are dates
+  if (is.Date(start_date) == FALSE){
+    stop("start_date argument is not a Date, did you specify it in the form as.Date('yyyy-mm-dd')")
+  }
+
+  if (is.Date(end_date) == FALSE){
+    stop("end_date argument is not a Date, did you specify it in the form as.Date('yyyy-mm-dd')")
+  }
+
+
+  if(start_date > end_date) stop("Invalid time range, start time exceeds end time!")
+
+  ### put together the list of year-months to be pulled
+  start_month <- lubridate::format_ISO8601(as.Date(start_date), precision = "ym")
+  end_month <- lubridate::format_ISO8601(as.Date(end_date), precision = "ym")
+
+
+
+  ### creates the date-times
+  return(list(start_time = start_month,
+              end_time = end_month))
+
+}
 
 
 

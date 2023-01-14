@@ -48,3 +48,54 @@ get_sixhr_chirps <- function(start_date,
                       dsn = dsn)
 
 }
+
+
+get_month_chirps <- function(start_date,
+                             end_date,
+                             link_base = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/",
+                             dsn = getwd(),
+                             cores = 1L){
+
+  dt <- chirpname_monthly(start_date = start_date,
+                          end_date = end_date)
+
+  dt[, sub_dir := "global_monthly/tifs/"]
+
+  dt[, full_link := paste0(link_base,
+                           sub_dir,
+                           filename)]
+
+  cl <- makePSOCKcluster(cores)
+  on.exit(stopCluster(cl))
+
+  ## check that the link exists
+  dt$exist_status <- unlist(parLapply(cl = cl,
+                                      X = dt$full_link,
+                                      fun = checkurl_exist))
+
+  ## download the chirps
+  parallel::parLapply(cl = cl,
+                      X = dt[exist_status == TRUE, full_link],
+                      fun = download_worker,
+                      dsn = dsn)
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
