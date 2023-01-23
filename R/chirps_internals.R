@@ -181,8 +181,7 @@ check_valid_sixhr <- function(start_date,
 }
 
 
-<<<<<<< HEAD
-=======
+
 check_valid_daily <- function(start_date,
                               end_date) {
 
@@ -209,9 +208,6 @@ check_valid_daily <- function(start_date,
 
 
 
-
-
->>>>>>> b1a3a46807433feb00d859199d81a3f187236513
 
 
 ### download function for getting the actual files
@@ -310,7 +306,6 @@ check_valid_month <- function(start_date,
               end_time = end_month))
 
 }
-<<<<<<< HEAD
 
 
 #################################################################################
@@ -329,11 +324,6 @@ chirpname_annual <- function(start_year,
 
 
 }
-
-
-=======
->>>>>>> b1a3a46807433feb00d859199d81a3f187236513
-
 
 
 
