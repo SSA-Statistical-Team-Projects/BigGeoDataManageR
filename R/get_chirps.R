@@ -1,4 +1,7 @@
-#' Download six-hour rainfall chirp data
+#' Download rainfall chirp data
+#'
+#' Pull rainfall data from the CHIRPS data at different intervals (annual, daily, month, and six hourly)
+#' The data is downloaded in raster format (.tif)
 #'
 #' @param start_hr An integer, the starting hour in the interval for pulling the data
 #' @param end_hr An integer, the final hour in the interval for pulling the data
@@ -7,8 +10,12 @@
 #' @param link_base the link to the daily chirps data (no need to change this)
 #' @param resolution A character, gridded resolution of the data (options area "p05" i.e.
 #'                   0.05 degree resolution and p25 for 0.25)
+#' @param dsn data source name (a local folder where the data is to be stored)
+#' @param cores the number of PC cores to employ in pulling the data in parallel
 #'
 #' @importFrom parallel stopCluster makePSOCKcluster parLapply
+#'
+#' @export
 #'
 
 get_sixhr_chirps <- function(start_date,
