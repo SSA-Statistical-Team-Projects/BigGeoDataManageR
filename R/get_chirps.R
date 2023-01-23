@@ -138,7 +138,40 @@ get_month_chirps <- function(start_date,
 
 
 
+get_annual_chirps <- function(start_year,
+                              end_year,
+                              link_base = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/",
+                              dsn = getwd(),
+                              cores = 1L){
 
+
+  dt <- chirpname_annual(start_year = start_year,
+                         end_year = end_year)
+
+  dt <- data.table(filename = dt)
+
+  dt[, sub_dir := "global_annual/tifs/"]
+
+  dt[, full_link := paste0(link_base,
+                           sub_dir,
+                           filename)]
+
+  cl <- makePSOCKcluster(cores)
+  on.exit(stopCluster(cl))
+
+  ## check that the link exists
+  dt$exist_status <- unlist(parLapply(cl = cl,
+                                      X = dt$full_link,
+                                      fun = checkurl_exist))
+
+  ## download the chirps
+  parallel::parLapply(cl = cl,
+                      X = dt[exist_status == TRUE, full_link],
+                      fun = download_worker,
+                      dsn = dsn)
+
+
+}
 
 
 

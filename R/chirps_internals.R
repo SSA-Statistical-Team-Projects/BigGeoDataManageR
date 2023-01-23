@@ -105,7 +105,27 @@ chirpname_daily <- function(start_date,
 }
 
 
+chirpname_annual <- function(start_year,
+                             end_year){
 
+  time_list <- check_valid_annual(start_year = start_year,
+                                  end_year = end_year)
+
+  ### create the names
+  year_list <- seq(start_year, end_year, 1)
+
+  year_dt <- data.table(year = year_list,
+                        version = "chirps-v2.0.",
+                        ext = ".tif")
+
+  year_dt[, full_link := paste0(version, year, ext)]
+
+  return(year_dt$full_link)
+
+}
+
+
+### functions for checking validity of the arguments needed for pull
 
 check_valid_daily <- function(start_date,
                               end_date) {
@@ -179,34 +199,6 @@ check_valid_sixhr <- function(start_date,
               end_time = end_time))
 
 }
-
-
-
-check_valid_daily <- function(start_date,
-                              end_date) {
-
-  ### first make sure start_date and end_date are dates
-  if (is.Date(start_date) == FALSE){
-    stop("start_date argument is not a Date, did you specify it in the form as.Date('yyyy-mm-dd')")
-  }
-
-  if (is.Date(end_date) == FALSE){
-    stop("end_date argument is not a Date, did you specify it in the form as.Date('yyyy-mm-dd')")
-  }
-
-  if (end_date < start_date){
-    stop("End Date should be after the start date")
-  }
-
-
-  ### creates the date-times
-  return(list(start_time = start_time,
-              end_time = end_time))
-
-}
-
-
-
 
 
 
@@ -310,10 +302,10 @@ check_valid_month <- function(start_date,
 
 #################################################################################
 #### functions for the annual chirps pulls
-chirpname_annual <- function(start_year,
-                             end_year){
+check_valid_annual <- function(start_year,
+                               end_year){
 
-  if (is.integer(start_year) == FALSE | is.integer(end_year) == FALSE){
+  if (as.integer(start_year) == FALSE | as.integer(end_year) == FALSE){
     stop("start and end year must be integers")
   }
 
@@ -324,9 +316,6 @@ chirpname_annual <- function(start_year,
 
 
 }
-
-
-
 
 
 
