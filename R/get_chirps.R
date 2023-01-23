@@ -52,6 +52,7 @@ get_sixhr_chirps <- function(start_date,
 }
 
 
+<<<<<<< HEAD
 
 get_daily_chirps <- function(start_date,
                              end_date,
@@ -104,6 +105,8 @@ get_daily_chirps <- function(start_date,
 
 
 
+=======
+>>>>>>> b1a3a46807433feb00d859199d81a3f187236513
 get_month_chirps <- function(start_date,
                              end_date,
                              link_base = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/",
@@ -146,3 +149,13 @@ get_month_chirps <- function(start_date,
 
 
 
+<<<<<<< HEAD
+=======
+
+
+
+
+
+
+
+>>>>>>> b1a3a46807433feb00d859199d81a3f187236513

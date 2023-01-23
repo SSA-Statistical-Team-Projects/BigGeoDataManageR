@@ -22,8 +22,6 @@ chirpname_sixhr(
 \item{start_hr}{An integer, the starting hour in the interval for pulling the data}
 
 \item{end_hr}{An integer, the final hour in the interval for pulling the data}
-
-\item{url}{}
 }
 \description{
 Internal functions

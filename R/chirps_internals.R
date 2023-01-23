@@ -5,7 +5,7 @@
 #' @param start_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
 #' @param end_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
 #'
-#' @importFrom lubridate is.Date ymd_hms ceiling_date floor_date day hour year month
+#' @importFrom lubridate is.Date ymd_hms ceiling_date floor_date day hour year month format_ISO8601
 #' @importFrom data.table data.table
 
 
@@ -77,7 +77,29 @@ chirpname_daily <- function(start_date,
 
   return(dld_filelist)
 
+  time_list <- check_valid_daily(start_date = start_date,
+                                 end_date = end_date)
 
+  #### create list of query times from start time to end time
+  dt <- data.table(pull_date = seq(start_date,
+                                   end_date,
+                                   by = repo_interval))
+
+  date_list <- seq(as.Date(time_list$start_date),
+                   as.Date(time_list$end_date),
+                   "days")
+
+  construct_chirpname <- function(X){
+
+    X <- gsub("-", ".", X)
+
+    y <- paste("chirps-v2.0", X, "tif.gz", sep = ".")
+
+  }
+
+  dld_filelist <- lapply(date_list, construct_chirpname)
+
+  return(dld_filelist)
 
 
 }
@@ -159,6 +181,37 @@ check_valid_sixhr <- function(start_date,
 }
 
 
+<<<<<<< HEAD
+=======
+check_valid_daily <- function(start_date,
+                              end_date) {
+
+  ### first make sure start_date and end_date are dates
+  if (is.Date(start_date) == FALSE){
+    stop("start_date argument is not a Date, did you specify it in the form as.Date('yyyy-mm-dd')")
+  }
+
+  if (is.Date(end_date) == FALSE){
+    stop("end_date argument is not a Date, did you specify it in the form as.Date('yyyy-mm-dd')")
+  }
+
+  if (end_date < start_date){
+    stop("End Date should be after the start date")
+  }
+
+
+  ### creates the date-times
+  return(list(start_time = start_time,
+              end_time = end_time))
+
+}
+
+
+
+
+
+
+>>>>>>> b1a3a46807433feb00d859199d81a3f187236513
 
 
 ### download function for getting the actual files
@@ -257,6 +310,7 @@ check_valid_month <- function(start_date,
               end_time = end_month))
 
 }
+<<<<<<< HEAD
 
 
 #################################################################################
@@ -277,6 +331,8 @@ chirpname_annual <- function(start_year,
 }
 
 
+=======
+>>>>>>> b1a3a46807433feb00d859199d81a3f187236513
 
 
 
