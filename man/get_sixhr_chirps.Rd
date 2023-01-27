@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_chirps.R
 \name{get_sixhr_chirps}
 \alias{get_sixhr_chirps}
-\title{Download six-hour rainfall chirp data}
+\title{Download rainfall chirp data}
 \usage{
 get_sixhr_chirps(
   start_date,
@@ -24,7 +24,15 @@ get_sixhr_chirps(
 \item{end_hr}{An integer, the final hour in the interval for pulling the data}
 
 \item{link_base}{the link to the daily chirps data (no need to change this)}
+
+\item{dsn}{data source name (a local folder where the data is to be stored)}
+
+\item{cores}{the number of PC cores to employ in pulling the data in parallel}
+
+\item{resolution}{A character, gridded resolution of the data (options area "p05" i.e.
+0.05 degree resolution and p25 for 0.25)}
 }
 \description{
-Download six-hour rainfall chirp data
+Pull rainfall data from the CHIRPS data at different intervals (annual, daily, month, and six hourly)
+The data is downloaded in raster format (.tif)
 }

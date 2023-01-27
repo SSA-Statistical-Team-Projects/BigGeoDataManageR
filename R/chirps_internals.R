@@ -228,9 +228,6 @@ checkurl_exist <- function(url){
   test_result <- list(exists = status == HTTP_STATUS_OK,
                       status = status)
 
-  if (test_result$exists == FALSE) {
-    message("WARNING: ", basename(url), " is not on the CHIRPS database")
-  }
 
   return(test_result$exists)
 

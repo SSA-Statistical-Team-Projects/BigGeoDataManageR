@@ -15,7 +15,7 @@ access_token_list <- jsonlite::fromJSON(httr::content(response,as="text",encodin
 access_token <- access_token_list$access_token
 # Submit request with token bearer and write to output file
 ## Change data_url variable to the file you want to download
-data_url <- "https://eogdata.mines.edu/nighttime_light/nightly/cloud_cover/SVDNB_npp_d20120301.vcld.tif"
+data_url <- "https://eogdata.mines.edu/nighttime_light/nightly/cloud_cover/SVDNB_npp_d20200105.vcld.tif"
 auth <- paste('Bearer', access_token)
 ## You can either define the output file name directly
 # output_file <- 'EOG_sensitive_contents.txt'
