@@ -151,6 +151,10 @@ get_annual_ntl <- function(year,
                            version,
                            link_base = "https://eogdata.mines.edu/nighttime_light/annual/"){
 
+  ### construct the link
+  url_link <- construct_year_link(year = year,
+                                  version = version)
+
 
 
 }
