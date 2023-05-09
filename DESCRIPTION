@@ -2,9 +2,8 @@ Package: BigGeoDataManageR
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person("Ifeanyi", "Edochie", , "iedochie@worldbank.org", role = "aut",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Edochie", "Ifeanyi", email = "iedochie@worldbank.org", role = "cre")
+Description: We create some utility functions to support the geospatial data downloading, processing and indicator estimation.
 Imports:
     R.utils,
     lubridate,
@@ -12,7 +11,16 @@ Imports:
     parallel,
     httr,
     XML,
-    data.table
+    data.table,
+    rvest,
+    osmextract,
+    RCurl,
+    dtplyr,
+    foreach,
+    parallelMap,
+    raster,
+    sf,
+    units
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8

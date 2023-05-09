@@ -58,6 +58,22 @@ get_sixhr_chirps <- function(start_date,
 
 }
 
+#' Download daily rainfall chirp data
+#'
+#' Pull rainfall data from the CHIRPS data at daily intervals for a specified period
+#' The data is downloaded in raster format (.tif)
+#'
+#' @param start_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
+#' @param end_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
+#' @param link_base the link to the daily chirps data (no need to change this)
+#' @param resolution A character, gridded resolution of the data (options area "p05" i.e.
+#'                   0.05 degree resolution and p25 for 0.25)
+#' @param dsn data source name (a local folder where the data is to be stored)
+#' @param cores the number of PC cores to employ in pulling the data in parallel
+#'
+#' @export
+#'
+
 
 
 get_daily_chirps <- function(start_date,
@@ -109,6 +125,22 @@ get_daily_chirps <- function(start_date,
 
 }
 
+
+#' Download monthly rainfall chirp data
+#'
+#' Pull rainfall data from the CHIRPS data at monthly intervals for a specified period
+#' The data is downloaded in raster format (.tif)
+#'
+#' @param start_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
+#' @param end_date An object of class date, must be specified like as.Date("yyyy-mm-dd")
+#' @param link_base the link to the daily chirps data (no need to change this)
+#' @param resolution A character, gridded resolution of the data (options area "p05" i.e.
+#'                   0.05 degree resolution and p25 for 0.25)
+#' @param dsn data source name (a local folder where the data is to be stored)
+#' @param cores the number of PC cores to employ in pulling the data in parallel
+#'
+#' @export
+#'
 
 
 get_month_chirps <- function(start_date,

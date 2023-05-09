@@ -1,0 +1,71 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# BigGeoDataManageR
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of BigGeoDataManageR is to provide utility functions for downloading geospatial data from different sources. The databases currently hosted include data on night lights and rainfall (with more to come).
+
+## Installation
+
+You can install the development version of BigGeoDataManageR from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("SSA-Statistical-Team-Projects/BigGeoDataManageR")
+```
+
+## Example
+
+Below are some samples on how to download the data (see package documentation for more):
+
+```{r example}
+library(BigGeoDataManageR)
+
+### download the annual night light rasters for 2020
+
+get_annual_ntl(username = "iedochie@worldbank.org",
+               password = "I651ny9@1588",
+               year = 2015,
+               version = "v20",
+               indicator = "average_masked")
+
+```
+
+Some functionality is created for performing geospatial data processing. The example below shows how we tessalate/grid a shapefile
+
+```{r}
+
+library("ggplot2")
+### tessellate a Banjul area of Gambia to show how this works:
+
+print(gmbsf_dt)
+
+grid_dt <- 
+gengrid2(shp_dt = gmbsf_dt,
+         grid_size = 1000)
+
+ggplot(grid_dt) + 
+  geom_sf() + 
+  facet_wrap(. ~ LGA)
+
+
+
+```
+
+
+

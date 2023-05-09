@@ -23,25 +23,11 @@
 #' @export
 
 
-gengrid2 <- function(shp_dt = NULL,
-                     shp_dsn,
-                     shp_layer,
+gengrid2 <- function(shp_dt,
                      grid_size,
-                     sqr = TRUE,
-                     pop_raster,
-                     raster_path = NULL,
-                     extract_name,
-                     raster_function = "sum") {
+                     sqr = TRUE) {
 
   sf_use_s2(FALSE) ##just to ensure we don't begin to have issues with duplicate vertices
-
-  if(is.null(shp_dt) == TRUE) {
-
-    shp_dt <- st_read(dsn = shp_dsn,
-                      layer = shp_layer)
-
-  }
-
 
   ## now we are ready to grid our district shapefile
   print("Initiating shape object tesselation")
@@ -121,38 +107,6 @@ gengrid2 <- function(shp_dt = NULL,
        main = "Distribution of Polygon Size")
 
   print("The plot window should show you a distribution of the polygon sizes")
-
-  ##extract population raster into the data
-  ### read in the raster file
-  if(is.null(raster_path) == FALSE) {
-    pop_raster <- raster(raster_path)
-  }
-
-
-
-  ### convert crs of shapefile to the crs of the raster
-  grid_system <- st_transform(x = grid_system, crs = pop_raster@crs)
-
-  print("Initiating Raster Extraction into the shapefile")
-  ### extract value into the grid system
-  zonal_stats <- exact_extract(x = pop_raster,
-                               y = grid_system,
-                               fun = raster_function) %>% data.table()
-  print("Raster Extraction Complete")
-  colnames(zonal_stats) <- extract_name
-
-  print("Combining zonal statistics with tesselated shapefile object")
-  grid_system <- cbind(grid_system, zonal_stats)
-
-  ### show proportion of extracted raster in the grid
-  raster_stat <- raster::cellStats(pop_raster, raster_function)
-  raster_rate <- abs(do.call("sum", list(grid_system[[extract_name]], na.rm = TRUE)) - raster_stat)
-  raster_rate <- (raster_rate/raster_stat)*100
-  print(paste0("There is a ", round(raster_rate, 3),
-               "% difference between the aggregate estimates of the raster and gridded extract"))
-
-  print("Done! Enjoy!")
-  ## return results
 
   return(grid_system)
 

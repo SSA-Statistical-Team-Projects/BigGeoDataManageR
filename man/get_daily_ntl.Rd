@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_ntl.R
 \name{get_daily_ntl}
 \alias{get_daily_ntl}
-\title{Download Night Time Lights Data}
+\title{Download Daily Night Time Lights Data}
 \usage{
 get_daily_ntl(
   username,

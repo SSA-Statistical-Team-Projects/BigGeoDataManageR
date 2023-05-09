@@ -176,6 +176,7 @@ construct_year_link <- function(year,
 
   url_link <- paste0(link_base,
                      version,
+                     "/",
                      year)
 
   return(url_link)
