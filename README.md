@@ -4,6 +4,8 @@
 # BigGeoDataManageR
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/SSA-Statistical-Team-Projects/BigGeoDataManageR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/SSA-Statistical-Team-Projects/BigGeoDataManageR/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of BigGeoDataManageR is to provide utility functions for

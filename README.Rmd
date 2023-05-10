@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # BigGeoDataManageR
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/SSA-Statistical-Team-Projects/BigGeoDataManageR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/SSA-Statistical-Team-Projects/BigGeoDataManageR/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of BigGeoDataManageR is to provide utility functions for downloading geospatial data from different sources. The databases currently hosted include data on night lights and rainfall (with more to come).
