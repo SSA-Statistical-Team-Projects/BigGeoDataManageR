@@ -47,4 +47,36 @@ downloadData(dat= BFA_agesex,
 
 
 
+#### testing the parallel extraction function
+
+pop_raster <- raster::raster("//cwapov/cwapov/GMB/GEO/Population/gmb_ppp_2020_UNadj.tif")
+
+pop_raster <- projectRaster(pop_raster, crs = st_crs(gmbsf_dt)$proj4string)
+
+grid_dt <-
+  gengrid2(shp_dt = gmbsf_dt,
+           grid_size = 1000)
+
+results <-
+parallel_zonalstats(x = pop_raster,
+                    y = grid_dt,
+                    fun = "sum",
+                    numCores = 30)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
