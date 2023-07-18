@@ -206,6 +206,12 @@ check_valid_sixhr <- function(start_date,
 download_worker <- function(dsn,
                             url){
 
+  timestamp <- format(Sys.time(), "%Y%m%d%H%M%S")
+
+  destfile <- paste(dsn,
+                    paste0(basename(url), ".", timestamp),
+                    sep = "/")
+
   download.file(url = url,
                 destfile = paste(dsn, basename(url), sep = "/"),
                 mode = "wb")

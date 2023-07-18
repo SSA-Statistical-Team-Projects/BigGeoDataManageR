@@ -22,7 +22,8 @@ get_annual_ntl(
 
 \item{year}{An integer, for the year of interest (yyyy), one year at a time}
 
-\item{version}{A string character, for now only "v10" is supported more to come later}
+\item{version}{A string character, "v10" (for the years 2015, 2016) is supported more to
+come later, "v20" or "v21" (for the years 2012 to 2021)}
 
 \item{indicator}{A character, specifying the specific indicator of interest. Options are
 "average", "average_masked", "cf_cvg", "cvg", "lit_mask", "maximum", "median", "median_masked" and "minimum"}

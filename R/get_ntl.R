@@ -57,14 +57,14 @@ get_daily_ntl <- function(username,
   cl <- makePSOCKcluster(cores)
   on.exit(stopCluster(cl))
 
-  ## check that the link exists
-  name_dt$exist_status <- unlist(parLapply(cl = cl,
-                                           X = name_dt$full_link,
-                                           fun = checkurl_exist))
+  # ## check that the link exists
+  # name_dt$exist_status <- unlist(parLapply(cl = cl,
+  #                                          X = name_dt$full_link,
+  #                                          fun = checkurl_exist))
 
   ## download the chirps
   parallel::parLapply(cl = cl,
-                      X = name_dt[exist_status == TRUE, full_link],
+                      X = name_dt$full_link,
                       fun = ntl_downloader,
                       username = username,
                       password = password,
@@ -74,7 +74,7 @@ get_daily_ntl <- function(username,
                       token_url = 'https://eogauth.mines.edu/auth/realms/master/protocol/openid-connect/token')
 
 
-  return(name_dt[,c("full_link", "exist_status"), with = F])
+  return(name_dt[,c("full_link"), with = F])
 
 }
 
@@ -172,7 +172,8 @@ get_month_ntl <- function(username,
 #' time intervals, daily, monthly and annually.
 #'
 #' @param year An integer, for the year of interest (yyyy), one year at a time
-#' @param version A string character, for now only "v10" is supported more to come later
+#' @param version A string character, "v10" (for the years 2015, 2016) is supported more to
+#' come later, "v20" or "v21" (for the years 2012 to 2021)
 #' @param username A character, username on NASA's Earth Observation Group database
 #' @param password A character, password on NASA's Earth Observation Gruop database
 #' @param indicator A character, specifying the specific indicator of interest. Options are
