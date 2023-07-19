@@ -2,6 +2,7 @@
 pacman::p_load(hexSticker)
 
 imgurl <- "inst/sticker/geosticker.png"
+imgurl2 <- "inst/sticker/geosticker2.jpeg"
 
 sticker_obj <-
 sticker(imgurl,
