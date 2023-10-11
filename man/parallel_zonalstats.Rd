@@ -21,3 +21,30 @@ with polygonal geometries to be extracted into}
 A function to split a shapefile into many parts and computes the zonal statistics
 for each part in parallel to speed up the zonal statistics estimations
 }
+\examples{
+
+\dontrun{
+
+grid the data
+
+grid_dt <- gengrid2(shp_dt = gmbsf_dt,
+                    grid_size = 1000,
+                    sqr = FALSE)
+
+### apply the parallel zonal statistics computation
+gmb_raster <- raster::raster("data/gmb_ppp_2020_constrained.tif")
+
+start_time <- Sys.time()
+
+grid_dt$population <-
+parallel_zonalstats(x = gmb_raster,
+                    y = grid_dt,
+                    fun = "sum",
+                    numCores = 5)
+
+
+
+}
+
+
+}

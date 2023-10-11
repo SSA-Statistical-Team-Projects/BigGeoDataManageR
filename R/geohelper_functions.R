@@ -241,7 +241,7 @@ wpopbuilding_vcheck <- function(){
 #'
 #' @examples
 #'
-#' \donttest {
+#' \dontrun{
 #'
 #' grid the data
 #'
