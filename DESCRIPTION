@@ -22,7 +22,9 @@ Imports:
     sf,
     units,
     exactextractr,
-    crsuggest
+    crsuggest,
+    dplyr,
+    osmdata
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8

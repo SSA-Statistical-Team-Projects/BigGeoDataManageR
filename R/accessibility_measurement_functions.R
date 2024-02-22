@@ -114,9 +114,9 @@ create_query_bbox <- function(shp_dt = NULL,
 #' @param streets_obj an object of class `list`, `osmdata`, `osmdata_sf` for the path/road linestrings created from
 #' `osmdata::add_osm_feature()` function
 #' @param length_as_weight logical, if TRUE the geometry will be used in estimating the cost matrix for distance to destination
-#' @param speed_dt a `data.frame`, `speed_dt` should contain two columns named `highway` and `speed` according to the OSM lines
-#' object from `osmdata` package. `speed` can be a column of 1s if the intention is not to estimate a cost beyond distances
-#' @param surfadj_dt a `data.frame`, `surfadj_dt` should contain two columns surface and div_speed_by which allows to make
+#' @param speed_dt a `data.frame`, `speed_dt` should contain two columns named `highway` and `speed` in km/hr according to the
+#' OSM lines object from `osmdata` package. `speed` can be a column of 1s if the intention is not to estimate a cost beyond distances
+#' @param surfadj_dt a `data.frame`, `surfadj_dt` should contain two columns `surface` and `div_speed_by` which allows to make
 #' adjustments `speed_dt$speed` based on `surface` of each  `highway` class.
 #' @param eps_dist a `numeric` to show the distance within which nodes that are close enough should be merged. see `eps` argument
 #' of `dbscan::dbscan()`
@@ -124,7 +124,7 @@ create_query_bbox <- function(shp_dt = NULL,
 #'
 #'
 #'
-#' @import tidygraph osmdata accessibility
+#' @import tidygraph osmdata accessibility units crsuggest
 
 clean_osmlines <- function(streets_obj,
                            length_as_weight = TRUE,
@@ -142,7 +142,8 @@ clean_osmlines <- function(streets_obj,
                                                    div_speed_by = c(1.00, 1.30, 1.10, 1.30, 1.30, 1.10, 1.10, 1.30,
                                                                     1.30, 1.30, 1.30, 1.30, 1.00, 1.30, 1.30, 1.30,
                                                                     1.30, 1.00, 1.30, 1.30, 1.30, 1.00, 1.00, 1.30)),
-                           eps_dist = 50){
+                           eps_dist = 50,
+                           directed = FALSE){
 
   lines_dt <- streets_obj$osm_lines[, c("osm_id", "highway", "surface", "geometry")]
 
@@ -193,11 +194,9 @@ clean_osmlines <- function(streets_obj,
                               speed,
                               speed / div_speed_by))
 
-
-
   ### creating an sf network object
   network_obj <- as_sfnetwork(lines_dt,
-                              directed = F,
+                              directed = directed,
                               length_as_weight = length_as_weight)
 
   ### simplifying the data, delete redundant edges, multiples edges and unnecessary
@@ -220,17 +219,27 @@ clean_osmlines <- function(streets_obj,
     convert(to_spatial_smooth,
             summarise_attributes = smooth_action)
 
-
   ### using the dbscan algorithm to combine nodes that are so close
+  #### use a metric resolution since eps is intuitive in metres
+
   node_dt <-
     network_obj %>%
     activate("nodes") %>%
+    st_as_sf()
+
+  suggest_dt <-
+    node_dt %>%
+    crsuggest::suggest_crs(units = "m")
+
+  node_dt <-
+    node_dt %>%
+    st_transform(crs = as.numeric(suggest_dt$crs_code[1])) %>%
     st_coordinates()
 
-  cluster_vector <- dbscan(node_dt,
-                           eps = eps_dist/(6371000*180/22/7),
-                           minPts = 1)$cluster
 
+  cluster_vector <- dbscan(node_dt,
+                           eps = eps_dist,
+                           minPts = 1)$cluster
 
   network_obj <-
     network_obj %>%
@@ -243,16 +252,13 @@ clean_osmlines <- function(streets_obj,
             simplify = TRUE) %>%
     activate("edges") %>%
     st_as_sf() %>%
+    mutate(speed = speed * units::as_units("km/h")) %>%
+    mutate(adj_speed = adj_speed * units::as_units("km/h")) %>%
     mutate(weight = units::set_units(st_length(.), "km")) %>%
     mutate(time = weight / adj_speed)
 
 
-
-
-
   return(network_obj)
-
-
 
 }
 
@@ -261,14 +267,57 @@ clean_osmlines <- function(streets_obj,
 
 #' A function to compute distance/cost to point of interest using cost-matrix system
 #'
+#' @param lines_obj an `sf`,`data.frame` or `sfnetwork` object
+#' @param origins_dt an `sf` object showing the set of origin points
+#' @param dest_dt on `sf` object showing the destimations or points of interest to optimize on
+#' @param cost_matrix where or not the cost matrix should be returned
+#' @param weight the variable within the `lines_obj` to be used as measure cost measure (e.g time)
+#' @param directed FALSE if each edge is assumed to be two-way directed.
+#' @param length_as_weight TRUE if `weight` is to be length of edges within the network
+#'
+#' @export
+#'
 
-compute_networkaccess <- function(sfnetwork_obj,
+compute_networkaccess <- function(lines_obj,
                                   origins_dt,
                                   dest_dt,
                                   cost_matrix = FALSE,
-                                  weight = "time"){
+                                  weight = "time",
+                                  directed = FALSE,
+                                  length_as_weight = TRUE){
 
 
+  ### convert sf object to network object
+  sfnetwork_obj <-
+    lines_obj %>%
+    as_sfnetwork(directed = directed,
+                 length_as_weight = length_as_weight)
+
+  network_crs <- sfnetwork_obj %>%
+    st_as_sf() %>%
+    st_crs()
+
+  network_crs <- network_crs$input
+
+  origins_crs <- origins_dt %>%
+    st_crs()
+  origins_crs <- origins_crs$input
+
+  dest_crs <- dest_dt %>%
+    st_crs()
+  dest_crs <- dest_crs$input
+
+  if (network_crs != origins_crs){
+
+    origins_dt <- st_transform(origins_dt, crs = network_crs)
+
+  }
+
+  if (network_crs != dest_crs){
+
+    dest_dt <- st_transform(dest_dt, crs = network_crs)
+
+  }
   ### blend origin and destination data to the network object
   blend_obj <- st_network_blend(sfnetwork_obj, origins_dt)
 
@@ -284,6 +333,13 @@ compute_networkaccess <- function(sfnetwork_obj,
   min_values <- apply(cost_matrix, 1, min)
 
   return(min_values)
+
+  if (cost_matrix == TRUE){
+
+    return(list(min_values,
+                cost_matrix))
+
+  }
 
 
 }

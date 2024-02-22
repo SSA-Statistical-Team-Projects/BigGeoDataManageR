@@ -35,6 +35,10 @@ cleanlines_dt <-
   clean_osmlines(streets_obj = roadnetwork_obj)
 
 
+locations_dt[["time_to_market"]] <-
+  compute_networkaccess(lines_obj = cleanlines_dt,
+                        origins_dt = locations_dt[,c("poly_id")],
+                        dest_dt = amenities_dt$osm_points)
 
 
 

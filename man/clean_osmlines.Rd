@@ -4,7 +4,36 @@
 \alias{clean_osmlines}
 \title{A function to clean and prepare geospatial lines (road network) data for measuring cost matrices}
 \usage{
-clean_osmlines(streets_obj)
+clean_osmlines(
+  streets_obj,
+  length_as_weight = TRUE,
+  speed_dt = data.frame(highway = c("trunk", "secondary", "tertiary", "residential",
+    "unclassified", "primary", "trunk_link", "secondary_link", "primary_link",
+    "tertiary_link", "road"), speed = c(90, 60, 55, 40, 50, 70, 70, 55, 60, 45, 50)),
+  surfadj_dt = data.frame(surface = c("asphalt", "unpaved", "concrete",
+    "cobblestone:flattened", "dirt/sand", "dirt", "paved", "sett", "ground", "gravel",
+    "cobblestone", "paving_stones", "compacted", "sand", "unhewn_cobblestone", "earth",
+    "grass", "unspecified", "mud", "dust", "wood", "concrete:plates", "concrete:lanes",
+    "unpaved;dirt/sand"), div_speed_by = c(1, 1.3, 1.1, 1.3, 1.3, 1.1, 1.1, 1.3, 1.3,
+    1.3, 1.3, 1.3, 1, 1.3, 1.3, 1.3, 1.3, 1, 1.3, 1.3, 1.3, 1, 1, 1.3)),
+  eps_dist = 50,
+  directed = FALSE
+)
+}
+\arguments{
+\item{streets_obj}{an object of class \code{list}, \code{osmdata}, \code{osmdata_sf} for the path/road linestrings created from
+\code{osmdata::add_osm_feature()} function}
+
+\item{length_as_weight}{logical, if TRUE the geometry will be used in estimating the cost matrix for distance to destination}
+
+\item{speed_dt}{a \code{data.frame}, \code{speed_dt} should contain two columns named \code{highway} and \code{speed} in km/hr according to the
+OSM lines object from \code{osmdata} package. \code{speed} can be a column of 1s if the intention is not to estimate a cost beyond distances}
+
+\item{surfadj_dt}{a \code{data.frame}, \code{surfadj_dt} should contain two columns \code{surface} and \code{div_speed_by} which allows to make
+adjustments \code{speed_dt$speed} based on \code{surface} of each  \code{highway} class.}
+
+\item{eps_dist}{a \code{numeric} to show the distance within which nodes that are close enough should be merged. see \code{eps} argument
+of \code{dbscan::dbscan()}}
 }
 \description{
 A function to clean and prepare geospatial lines (road network) data for measuring cost matrices
