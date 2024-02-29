@@ -1,3 +1,68 @@
+################################################################################
+############### A SET OF UTILITY FUNCTIONS TO SUPPORT THE PROJECT ##############
+################################################################################
+
+#' A function to parallel compute zonal stats
+#'
+#' @details This function computes the zonal statistics for a shapefile, preferably a large
+#' shapefile with over 200,000+ observations by extracting vector object of class
+#' `raster`. The function splits the `sf`, `data.frame` polygon object into `cpus` number
+#' of parts and each part is extracted into in parallel.
+#'
+#' @param shp_dt sf, data.frame polygon/multipolygon object
+#' @param raster_obj object of class raster to be extracted from
+#' @param summary_fun the function to be used in computing zonal statistics
+#' @param cpus number of CPUs for parallelization
+#' @param parallel_mode see `parallelMap::parallelLapply()` for more details
+#'
+#' @export
+#' @import parallelMap
+
+parallel_zonalext <- function(shp_dt,
+                              raster_obj,
+                              summary_fun,
+                              cpus,
+                              parallel_mode = "multicore"){
+
+
+  cpus <- min(cpus, parallel::detectCores())
+
+  parallelMap::parallelStart(mode = parallel_mode,
+                             cpus = cpus,
+                             show.info = FALSE)
+
+  if (parallel_mode == "socket") {
+    parallel::clusterSetRNGStream()
+  }
+
+  ##### split shp_dt into equal parts
+  shp_dt <- split(shp_dt, 1:cpus)
+
+  compute_zonal_stats <- function(shp_dt,
+                                  raster_obj,
+                                  summary_fun){
+
+    shp_dt$result <- exact_extract(x = raster_obj,
+                                   y = shp_dt,
+                                   fun = summary_fun)
+
+    return(shp_dt)
+
+  }
+
+  parallelMap::parallelLibrary("exactextractr")
+
+  result_dt <- parallelMap::parallelLapply(xs = shp_dt,
+                                           fun = compute_zonal_stats,
+                                           raster_obj = raster_obj,
+                                           summary_fun = summary_fun)
+
+  parallelMap::parallelStop()
+
+  return(result_dt)
+
+}
+
 ###############################################################################################
 
 #' A function to create an osmdata package readable bounding box (bbox)
@@ -118,8 +183,8 @@ create_query_bbox <- function(shp_dt = NULL,
 #' OSM lines object from `osmdata` package. `speed` can be a column of 1s if the intention is not to estimate a cost beyond distances
 #' @param surfadj_dt a `data.frame`, `surfadj_dt` should contain two columns `surface` and `div_speed_by` which allows to make
 #' adjustments `speed_dt$speed` based on `surface` of each  `highway` class.
-#' @param eps_dist a `numeric` to show the distance within which nodes that are close enough should be merged. see `eps` argument
-#' of `dbscan::dbscan()`
+#' @param eps_dist a `numeric` to show the distance within which nodes that are close enough should be snapped together.
+#' see `eps` argument of `dbscan::dbscan()`
 #'
 #'
 #'
@@ -207,7 +272,7 @@ clean_osmlines <- function(streets_obj,
       adj_speed = "mean",
       highway = function(x) if (length(unique(x)) == 1) x[1] else "unknown",
       "ignore"
-      )
+    )
 
   network_obj <-
     network_obj %>%
@@ -327,7 +392,7 @@ compute_networkaccess <- function(lines_obj,
   cost_matrix <- st_network_cost(blend_obj,
                                  from = origins_dt,
                                  to = dest_dt,
-                                 weight = weight)
+                                 weights = weight)
 
 
   min_values <- apply(cost_matrix, 1, min)
@@ -345,7 +410,160 @@ compute_networkaccess <- function(lines_obj,
 }
 
 
+#' A function to compute distance/cost to point of interest using cost-matrix system in parallel
+#'
+#' @param cpus an `integer`, the number of CPUs to divide process into for parallelization
+#' @param parallel_model see `parallelMap::parallelLapply()` for more details
+#' @param lines_obj an `sfnetwork` object. apply as_`sfnetwork()` function to `sf`, `data.frame` object
+#' @param origins_dt an `sf` object showing the set of origin points
+#' @param dest_dt on `sf` object showing the destimations or points of interest to optimize on
+#' @param cost_matrix where or not the cost matrix should be returned
+#' @param weight the variable within the `lines_obj` to be used as measure cost measure (e.g time)
+#' @param directed FALSE if each edge is assumed to be two-way directed.
+#' @param length_as_weight TRUE if `weight` is to be length of edges within the network
+#' @param blend_obj a `character`, for the filepath to .RDS file to a blended network object of network, origin and destination
+#' objects. See `sfnetwork::st_network_blend()` for more details of `blend_obj`.
+#' @param blend_dsn a `character`, the folder location to store `blend_obj` when the function creates it. Otherwise,
+#' leave as NULL.
+#'
+#'
+#' @export
+#'
 
+
+parallel_compnetaccess <- function(cpus,
+                                   parallel_mode,
+                                   lines_obj,
+                                   origins_dt,
+                                   dest_dt,
+                                   cost_matrix = FALSE,
+                                   weight = "time",
+                                   directed = FALSE,
+                                   length_as_weight = TRUE,
+                                   blend_obj = NULL,
+                                   blend_dsn = NULL){
+
+  ### convert sf object to network object
+  # sfnetwork_obj <-
+  #   lines_obj %>%
+  #   as_sfnetwork(directed = directed,
+  #                length_as_weight = length_as_weight)
+
+  sfnetwork_obj <- lines_obj
+
+  network_crs <- sfnetwork_obj %>%
+    st_as_sf() %>%
+    st_crs()
+
+  network_crs <- network_crs$input
+
+  origins_crs <- origins_dt %>%
+    st_crs()
+  origins_crs <- origins_crs$input
+
+  dest_crs <- dest_dt %>%
+    st_crs()
+  dest_crs <- dest_crs$input
+
+  if (network_crs != origins_crs){
+
+    origins_dt <- st_transform(origins_dt, crs = network_crs)
+
+  }
+
+  if (network_crs != dest_crs){
+
+    dest_dt <- st_transform(dest_dt, crs = network_crs)
+
+  }
+
+  ### blend origin and destination data to the network object
+  if (is.null(blend_obj)) {
+
+    blend_obj <- st_network_blend(sfnetwork_obj, origins_dt)
+
+    blend_obj <- st_network_blend(sfnetwork_obj, dest_dt)
+
+    if (is.null(blend_dsn) == FALSE){
+
+      saveRDS(blend_obj, paste0(blend_dsn, "/network_blend.RDS"))
+
+    }
+
+  }
+
+  ### compute the cost matrix
+
+  min_network_cost <- function(...){
+
+    cost_matrix <- st_network_cost(...)
+
+    min_values <- apply(cost_matrix, 1, min)
+
+    return(min_values)
+
+  }
+
+
+  start_time <- Sys.time()
+
+  if (cpus > 1) {
+    cpus <- min(cpus, parallel::detectCores())
+
+    origins_dt <-
+      origins_dt %>%
+      mutate(split_id = 1:nrow(.))
+
+    dt_list <- split(origins_dt, 1:cpus)
+
+    parallelMap::parallelStart(
+      mode = parallel_mode,
+      cpus = cpus,
+      show.info = FALSE
+    )
+
+    if (parallel_mode == "socket") {
+      parallel::clusterSetRNGStream()
+    }
+
+    parallelMap::parallelLibrary("sf")
+    parallelMap::parallelLibrary("sfnetworks")
+
+    min_values <- simplify2array(parallelMap::parallelLapply(
+      xs                       = dt_list,
+      fun                      = min_network_cost,
+      x                        = blend_obj,
+      to                       = dest_dt,
+      weights                  = weight
+    ))
+    parallelMap::parallelStop()
+
+  } else {
+
+    "Please select a number greater than 1 for the cpus argument"
+
+  }
+
+  dt <-
+    mapply(FUN = function(dt, cost){
+
+      dt <- cbind(dt, cost)
+
+      return(dt)
+
+    },
+    dt = dt_list,
+    cost = min_values,
+    SIMPLIFY = FALSE)
+
+  dt <- Reduce(f = rbind,
+               x = dt)
+
+
+  return(dt)
+
+
+}
 
 
 

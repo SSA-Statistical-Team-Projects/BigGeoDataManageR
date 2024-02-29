@@ -18,7 +18,10 @@ locations_dt <- st_centroid(x = locations_dt)
 amenities_dt <-
   gmb_bbox %>%
   opq(timeout = 120, out = "body") %>%
-  add_osm_feature("amenity", "marketplace") %>%
+  add_osm_feature(key = "amenity",
+                  value = c("hospital","clinic","doctors","pharmacy",
+                            "atm", "bank", "marketplace", "college",
+                            "kindergaten", "school", "banks", "atm")) %>%
   osmdata_sf()
 
 roadnetwork_obj <-
@@ -34,13 +37,71 @@ roadnetwork_obj <-
 cleanlines_dt <-
   clean_osmlines(streets_obj = roadnetwork_obj)
 
+network_dt <-
+  cleanlines_dt %>%
+  as_sfnetwork(directed = FALSE,
+               length_as_weight = TRUE)
 
-locations_dt[["time_to_market"]] <-
-  compute_networkaccess(lines_obj = cleanlines_dt,
-                        origins_dt = locations_dt[,c("poly_id")],
-                        dest_dt = amenities_dt$osm_points)
+school_dt <-
+  amenities_dt$osm_points %>%
+  filter(amenity %in% "school") %>%
+  select(c(osm_id, geometry))
+
+locations_dt <- locations_dt[,c("poly_id")] %>% st_transform(crs = 4326)
+
+blend_obj <- st_network_blend(network_dt,
+                              locations_dt)
+
+blend_obj <- st_network_blend(blend_obj,
+                              school_dt)
+
+saveRDS(blend_obj, "spielplatz/access_testdata/blend_obj.RDS")
+#
+#
+# network_dt <-
+#   network_dt %>%
+#   activate("edges") %>%
+#   mutate(adj_speed = ifelse(is.na(time), 41.10, adj_speed)) %>%
+#   mutate(adj_speed = adj_speed * units::as_units("km/h")) %>%
+#   mutate(time = weight / adj_speed)
+#
+# blend_obj <-
+#   blend_obj %>%
+#   activate("edges") %>%
+#   mutate(adj_speed = ifelse(is.na(time), 41.10, adj_speed)) %>%
+#   mutate(adj_speed = adj_speed * units::as_units("km/h")) %>%
+#   mutate(time = weight / adj_speed)
 
 
 
+split_dt <-
+  locations_dt %>%
+  split(1:10)
+
+dt <- lapply(split_dt,
+             function(x){
+
+
+               y <- parallel_compnetaccess(cpus = 4,
+                                           parallel_mode = "socket",
+                                           lines_obj = network_dt,
+                                           origins_dt = x,
+                                           dest_dt = school_dt,
+                                           blend_obj = blend_obj,
+                                           blend_dsn = NULL)
+
+               saveRDS(y,
+                       paste0("spielplatz/ttm_",
+                              gsub("[-: ]", "_", as.character(Sys.time())),
+                              "_batch.rds"))
+
+               print("estimation split complete")
+
+               return(y)
+
+             })
+
+
+test_dt <- readRDS("spielplatz/ttm_2024_02_28_15_30_53.553746_batch.rds")
 
 
