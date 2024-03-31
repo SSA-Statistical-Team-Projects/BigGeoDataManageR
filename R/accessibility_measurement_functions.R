@@ -190,6 +190,7 @@ create_query_bbox <- function(shp_dt = NULL,
 #'
 #'
 #' @import tidygraph osmdata accessibility units crsuggest
+#' @export
 
 clean_osmlines <- function(streets_obj,
                            length_as_weight = TRUE,

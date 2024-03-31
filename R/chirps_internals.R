@@ -7,6 +7,7 @@
 #'
 #' @importFrom lubridate is.Date ymd_hms ceiling_date floor_date day hour year month format_ISO8601
 #' @importFrom data.table data.table
+#' @export
 
 
 chirpname_sixhr <- function(start_date,
@@ -320,9 +321,47 @@ check_valid_annual <- function(start_year,
 
 }
 
+#' A function to perform model selection for small area estimation using the LASSO algorithm
+#'
+#' @param dt a data.frame/data.table object containing the candidate variables for model selection
+#' @param xvars the list of candidate variables
+#' @param y the right hand size variable name contained within `dt`
+#'
+#' @import hdm
+#' @export
 
 
 
+### model selection by country
+countrymodel_select <- function(dt, xvars, y){
+
+  dt <- as.data.table(dt)
+
+  dt <- dt[,which(unlist(lapply(dt, function(x)!all(is.na(x))))), with = F]
+
+  xvars <- xvars[xvars %in% colnames(dt)]
+
+  dt <- na.omit(dt[,c(y, xvars), with = F])
+
+  xset <- dt[, xvars, with = F]
+
+  y <- dt[,y]
+
+  model_dt <- cbind(y, xset)
+
+  lasso_model <- hdm::rlasso(y ~ ., data = model_dt, post = TRUE)
+
+  lasso_model <- cbind(names(lasso_model$coefficients), as.data.table(lasso_model$coefficients))
+
+  colnames(lasso_model) <- c("variable_name", "value")
+
+  varsselect_list <- lasso_model$variable_name[lasso_model$value != 0]
+  varsselect_list <- varsselect_list[!varsselect_list == "(Intercept)"]
+
+
+  return(varsselect_list)
+
+}
 
 
 
