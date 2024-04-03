@@ -72,36 +72,78 @@ saveRDS(blend_obj, "spielplatz/access_testdata/blend_obj.RDS")
 #   mutate(adj_speed = adj_speed * units::as_units("km/h")) %>%
 #   mutate(time = weight / adj_speed)
 
+#### check how well it runs on the
 
+locations_dt[["time_nearest_school"]] <-
+  compute_networkaccess(lines_obj = cleanlines_dt,
+                        origins_dt = locations_dt,
+                        dest_dt = school_dt)
 
 split_dt <-
   locations_dt %>%
   split(1:10)
 
-dt <- lapply(split_dt,
-             function(x){
+# dt <- lapply(split_dt,
+#              function(x){
+#
+#
+#                y <- parallel_compnetaccess(cpus = 4,
+#                                            lines_obj = network_dt,
+#                                            origins_dt = x,
+#                                            dest_dt = school_dt,
+#                                            blend_obj = blend_obj,
+#                                            blend_dsn = NULL)
+#
+#                saveRDS(y,
+#                        paste0("spielplatz/ttm_",
+#                               gsub("[-: ]", "_", as.character(Sys.time())),
+#                               "_batch.rds"))
+#
+#                print("estimation split complete")
+#
+#                return(y)
+#
+#              })
+#
+# ###
+# dt <- Reduce(f = "rbind",
+#              x = dt)
 
 
-               y <- parallel_compnetaccess(cpus = 4,
-                                           parallel_mode = "socket",
-                                           lines_obj = network_dt,
-                                           origins_dt = x,
-                                           dest_dt = school_dt,
-                                           blend_obj = blend_obj,
-                                           blend_dsn = NULL)
 
-               saveRDS(y,
-                       paste0("spielplatz/ttm_",
-                              gsub("[-: ]", "_", as.character(Sys.time())),
-                              "_batch.rds"))
-
-               print("estimation split complete")
-
-               return(y)
-
-             })
+dt <-
+  parallel_compnetaccess(cpus = 4,
+                         lines_obj = network_dt,
+                         origins_dt = locations_dt,
+                         dest_dt = school_dt,
+                         blend_obj = blend_obj,
+                         blend_dsn = NULL)
 
 
-test_dt <- readRDS("spielplatz/ttm_2024_02_28_15_30_53.553746_batch.rds")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

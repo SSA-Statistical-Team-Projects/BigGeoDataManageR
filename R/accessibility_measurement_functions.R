@@ -433,7 +433,6 @@ compute_networkaccess <- function(lines_obj,
 
 
 parallel_compnetaccess <- function(cpus,
-                                   parallel_mode,
                                    lines_obj,
                                    origins_dt,
                                    dest_dt,
@@ -495,21 +494,15 @@ parallel_compnetaccess <- function(cpus,
 
   ### compute the cost matrix
 
-  min_network_cost <- function(...){
-
-    cost_matrix <- st_network_cost(...)
-
-    min_values <- apply(cost_matrix, 1, min)
-
-    return(min_values)
-
-  }
-
-
   start_time <- Sys.time()
 
   if (cpus > 1) {
+
     cpus <- min(cpus, parallel::detectCores())
+    parallelMap::parallelLibrary("sf")
+    parallelMap::parallelLibrary("sfnetworks")
+
+    doParallel::registerDoParallel(cores = cpus) ##initiate the number of cores to be used
 
     origins_dt <-
       origins_dt %>%
@@ -517,27 +510,19 @@ parallel_compnetaccess <- function(cpus,
 
     dt_list <- split(origins_dt, 1:cpus)
 
-    parallelMap::parallelStart(
-      mode = parallel_mode,
-      cpus = cpus,
-      show.info = FALSE
-    )
+    foreach(i = 1:length(dt_list)) %dopar% {
 
-    if (parallel_mode == "socket") {
-      parallel::clusterSetRNGStream()
+      cost_matrix <-
+        sfnetworks::st_network_cost(blend_obj,
+                                    from = dt_list[[i]],
+                                    to = dest_dt,
+                                    weights = weight)
+
+      dt_list[[i]]["cost"] <- apply(cost_matrix, 1, min)
+
     }
 
-    parallelMap::parallelLibrary("sf")
-    parallelMap::parallelLibrary("sfnetworks")
 
-    min_values <- simplify2array(parallelMap::parallelLapply(
-      xs                       = dt_list,
-      fun                      = min_network_cost,
-      x                        = blend_obj,
-      to                       = dest_dt,
-      weights                  = weight
-    ))
-    parallelMap::parallelStop()
 
   } else {
 
@@ -545,26 +530,14 @@ parallel_compnetaccess <- function(cpus,
 
   }
 
-  dt <-
-    mapply(FUN = function(dt, cost){
+  dt <- Reduce(f = "rbind",
+               x = dt_list)
 
-      dt <- cbind(dt, cost)
-
-      return(dt)
-
-    },
-    dt = dt_list,
-    cost = min_values,
-    SIMPLIFY = FALSE)
-
-  dt <- Reduce(f = rbind,
-               x = dt)
-
+  dt$split_id <- NULL
 
   return(dt)
 
 
 }
-
 
 
