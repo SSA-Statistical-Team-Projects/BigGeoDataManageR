@@ -510,6 +510,7 @@ parallel_compnetaccess <- function(cpus,
 
     dt_list <- split(origins_dt, 1:cpus)
 
+    cost_list <-
     foreach(i = 1:length(dt_list)) %dopar% {
 
       cost_matrix <-
@@ -518,9 +519,21 @@ parallel_compnetaccess <- function(cpus,
                                     to = dest_dt,
                                     weights = weight)
 
-      dt_list[[i]]["cost"] <- apply(cost_matrix, 1, min)
+      cost_list <- apply(cost_matrix, 1, min)
 
     }
+
+    dt_list <-
+      mapply(FUN = function(x, cost){
+
+        z <- cbind(x, cost)
+
+        return(z)
+
+      },
+      x = dt_list,
+      cost = cost_list,
+      SIMPLIFY = FALSE)
 
 
 
