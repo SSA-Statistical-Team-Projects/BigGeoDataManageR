@@ -513,13 +513,22 @@ parallel_compnetaccess <- function(cpus,
     cost_list <-
     foreach(i = 1:length(dt_list)) %dopar% {
 
-      cost_matrix <-
-        sfnetworks::st_network_cost(blend_obj,
-                                    from = dt_list[[i]],
-                                    to = dest_dt,
-                                    weights = weight)
+      # cost_matrix <-
+      #   sfnetworks::st_network_cost(blend_obj,
+      #                               from = dt_list[[i]],
+      #                               to = dest_dt,
+      #                               weights = weight)
+      #
+      # cost_list <- apply(cost_matrix, 1, min)
 
-      cost_list <- apply(cost_matrix, 1, min)
+      apply(sfnetworks::st_network_cost(blend_obj,
+                                  from = dt_list[[i]],
+                                  to = dest_dt,
+                                  weights = weight),
+            1,
+            min)
+
+
 
     }
 
