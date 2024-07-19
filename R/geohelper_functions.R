@@ -96,18 +96,18 @@ gengrid2 <- function(shp_dt,
   grid_system$poly_area <- set_units(grid_system$poly_area, "km^2")
 
   grid_system <- grid_system[as.numeric(grid_system$poly_area) > 0,]
-
-  print(paste0("The tesselated object represents a total area of ",
-               round(sum(grid_system$poly_area, na.rm = TRUE),2),
-               " km^2"))
-
-  grid_check <- as.numeric(grid_system$poly_area)
-  hist(x = grid_check,
-       xlab = "Polygon Size (in km^2)",
-       main = "Distribution of Polygon Size")
-
-  print("The plot window should show you a distribution of the polygon sizes")
-
+#
+#   print(paste0("The tesselated object represents a total area of ",
+#                round(sum(grid_system$poly_area, na.rm = TRUE),2),
+#                " km^2"))
+#
+#   grid_check <- as.numeric(grid_system$poly_area)
+#   hist(x = grid_check,
+#        xlab = "Polygon Size (in km^2)",
+#        main = "Distribution of Polygon Size")
+#
+#   print("The plot window should show you a distribution of the polygon sizes")
+#
   return(grid_system)
 
 }

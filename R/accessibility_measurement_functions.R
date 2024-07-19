@@ -330,7 +330,6 @@ clean_osmlines <- function(streets_obj,
 
 
 
-
 #' A function to compute distance/cost to point of interest using cost-matrix system
 #'
 #' @param lines_obj an `sf`,`data.frame` or `sfnetwork` object
